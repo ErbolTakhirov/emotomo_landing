@@ -1,0 +1,4017 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>EmoTomo — She's not a chatbot. She's someone.</title>
+    <meta name="description"
+        content="Twelve hand-written AI companions. Each lives in a world only they remember. They'll remember you, too." />
+    <meta name="theme-color" content="#050507" />
+
+    <meta property="og:title" content="EmoTomo — She's not a chatbot. She's someone." />
+    <meta property="og:description"
+        content="Twelve hand-written AI companions. Each lives in a world only they remember. They'll remember you, too." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/static/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="EmoTomo — She's not a chatbot. She's someone." />
+    <meta name="twitter:description"
+        content="Twelve hand-written AI companions. Each lives in a world only they remember." />
+    <meta name="twitter:image" content="/static/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050507'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23FF2D78'/%3E%3C/svg%3E" />
+
+    <style>
+        /* ========== Reset + tokens ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --bg: #050507;
+            --bg-2: #0a0a0e;
+            --surface: #0c0c12;
+            --surface-2: #14141c;
+            --pink: #FF2D78;
+            --pink-hot: #FF1A6B;
+            --magenta: #FF52A8;
+            --lime: #C7F76B;
+            --purple: #9D4EDD;
+            --text: #FFFFFF;
+            --text-soft: rgba(255, 255, 255, 0.78);
+            --muted: #888;
+            --muted-2: #555;
+            --border: rgba(255, 255, 255, 0.07);
+            --border-strong: rgba(255, 255, 255, 0.13);
+            --line: rgba(255, 255, 255, 0.06);
+            --display: 'Geist', system-ui, sans-serif;
+            --body: 'Geist', system-ui, sans-serif;
+            --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+            --grad-pink: linear-gradient(120deg, var(--pink) 0%, var(--magenta) 100%);
+            --grad-pink-soft: linear-gradient(135deg, rgba(255, 45, 120, 0.15), rgba(255, 82, 168, 0.1));
+            --shadow-pink: 0 0 64px rgba(255, 45, 120, 0.4), 0 0 24px rgba(255, 45, 120, 0.25);
+        }
+
+        body {
+            background: var(--bg);
+            /* fallback while aurora-bg loads */
+            color: var(--text);
+            font-family: var(--body);
+            font-size: 16px;
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        /* Once aurora is mounted, body bg is just the fallback — aurora-bg paints the actual surface */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(ellipse 70% 60% at center, black 30%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at center, black 30%, transparent 100%);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        img {
+            display: block;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto;
+            padding: 0 28px;
+        }
+
+        /* ========== Cursor follow dot (desktop only) ========== */
+        .cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--pink);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.18s ease, height 0.18s ease, background 0.2s ease;
+            z-index: 9999;
+            opacity: 0;
+        }
+
+        .cursor-dot.visible {
+            opacity: 1;
+        }
+
+        .cursor-dot.hover {
+            width: 48px;
+            height: 48px;
+        }
+
+        @media (pointer: coarse),
+        (prefers-reduced-motion: reduce) {
+            .cursor-dot {
+                display: none;
+            }
+        }
+
+        /* ========== Tiny mono label ========== */
+        .label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .label .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--pink);
+            box-shadow: 0 0 10px var(--pink), 0 0 18px rgba(255, 45, 120, 0.5);
+            animation: tinyPulse 2s ease-in-out infinite;
+        }
+
+        .label .dot.lime {
+            background: var(--lime);
+            box-shadow: 0 0 10px var(--lime), 0 0 18px rgba(199, 247, 107, 0.5);
+        }
+
+        @keyframes tinyPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(0.85);
+            }
+        }
+
+        /* ========== Buttons ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 26px;
+            border-radius: 999px;
+            font-family: var(--body);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: -0.005em;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.25s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-pink {
+            background: var(--pink);
+            color: #0a0207;
+            box-shadow: 0 8px 32px rgba(255, 45, 120, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-pink:hover {
+            background: var(--magenta);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 45, 120, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border-color: var(--border-strong);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
+        /* ========== Nav ========== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            padding: 18px 0;
+            backdrop-filter: blur(20px);
+            background: rgba(5, 5, 7, 0.6);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: baseline;
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: -0.025em;
+            color: var(--text);
+        }
+
+        .logo span {
+            color: var(--pink);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            color: var(--muted);
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            padding: 10px 22px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 720px) {
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            padding: 100px 0 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* ════════════ Living aurora — full-page background ════════════
+       5 blobs cycling through brand-only palette (pink/magenta/purple
+       family — no off-brand cyans/limes). Position FIXED so it follows
+       scroll across the entire landing, not just the hero. */
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            background: var(--bg);
+            animation: aurora-palette 12s linear infinite;
+        }
+
+        /* Brand-only palette: deep rose / hot pink / magenta / violet / indigo-purple */
+        @keyframes aurora-palette {
+            0% {
+                --p1: #FF2D78;
+                --p2: #9D4EDD;
+                --p3: #FF52A8;
+                --p4: #7B5CF0;
+                --p5: #C947B1;
+            }
+
+            25% {
+                --p1: #C947B1;
+                --p2: #FF2D78;
+                --p3: #9D4EDD;
+                --p4: #FF52A8;
+                --p5: #7B5CF0;
+            }
+
+            50% {
+                --p1: #7B5CF0;
+                --p2: #C947B1;
+                --p3: #FF2D78;
+                --p4: #9D4EDD;
+                --p5: #FF52A8;
+            }
+
+            75% {
+                --p1: #9D4EDD;
+                --p2: #7B5CF0;
+                --p3: #C947B1;
+                --p4: #FF2D78;
+                --p5: #FF52A8;
+            }
+
+            100% {
+                --p1: #FF2D78;
+                --p2: #9D4EDD;
+                --p3: #FF52A8;
+                --p4: #7B5CF0;
+                --p5: #C947B1;
+            }
+        }
+
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(85px) saturate(1.3);
+            will-change: transform, opacity;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .aurora-blob.b1 {
+            width: 720px;
+            height: 720px;
+            top: -12%;
+            left: -10%;
+            background: radial-gradient(circle, var(--p1) 0%, transparent 60%);
+            opacity: 0.85;
+            animation: blob-drift-1 14s ease-in-out infinite;
+        }
+
+        .aurora-blob.b2 {
+            width: 640px;
+            height: 640px;
+            top: 8%;
+            right: -12%;
+            background: radial-gradient(circle, var(--p2) 0%, transparent 60%);
+            opacity: 0.80;
+            animation: blob-drift-2 16s ease-in-out infinite;
+        }
+
+        .aurora-blob.b3 {
+            width: 560px;
+            height: 560px;
+            top: 45%;
+            left: 40%;
+            background: radial-gradient(circle, var(--p3) 0%, transparent 65%);
+            opacity: 0.65;
+            animation: blob-drift-3 18s ease-in-out infinite;
+        }
+
+        .aurora-blob.b4 {
+            width: 680px;
+            height: 680px;
+            bottom: -10%;
+            left: 8%;
+            background: radial-gradient(circle, var(--p4) 0%, transparent 60%);
+            opacity: 0.75;
+            animation: blob-drift-4 15s ease-in-out infinite;
+        }
+
+        .aurora-blob.b5 {
+            width: 420px;
+            height: 420px;
+            bottom: 12%;
+            right: 18%;
+            background: radial-gradient(circle, var(--p5) 0%, transparent 60%);
+            opacity: 0.60;
+            animation: blob-drift-5 17s ease-in-out infinite;
+        }
+
+        @keyframes blob-drift-1 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(80px, 60px) scale(1.08);
+            }
+
+            66% {
+                transform: translate(-40px, 100px) scale(0.95);
+            }
+        }
+
+        @keyframes blob-drift-2 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-100px, 80px) scale(1.1);
+            }
+        }
+
+        @keyframes blob-drift-3 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(0.95);
+                opacity: 0.22;
+            }
+
+            40% {
+                transform: translate(60px, -40px) scale(1.12);
+                opacity: 0.40;
+            }
+
+            70% {
+                transform: translate(-50px, 50px) scale(1);
+                opacity: 0.28;
+            }
+        }
+
+        @keyframes blob-drift-4 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(120px, -70px) scale(1.05);
+            }
+        }
+
+        @keyframes blob-drift-5 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(0.9);
+            }
+
+            50% {
+                transform: translate(-90px, -60px) scale(1.15);
+            }
+        }
+
+        /* Hero is now transparent — aurora-bg shows through */
+        .hero-bg {
+            display: none;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 100%, rgba(5, 5, 7, 0.6) 0%, transparent 60%),
+                linear-gradient(180deg, transparent 0%, rgba(5, 5, 7, 0.25) 100%);
+        }
+
+        /* Body grain layer — already in .aurora-bg dot-grid? No, that was body::before earlier.
+       Add a fixed grain on top of the aurora so the colour transition feels organic. */
+        .aurora-grain {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.06;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+        }
+
+        /* Sections need to sit above the fixed aurora */
+        .nav,
+        header.hero,
+        section,
+        footer {
+            position: relative;
+            z-index: 5;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .aurora-bg,
+            .aurora-blob {
+                animation: none !important;
+            }
+
+            .aurora-grain {
+                display: none;
+            }
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            margin-bottom: 28px;
+            animation: fadeUp 0.8s 0.2s ease both;
+        }
+
+        .hero-title {
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: clamp(46px, 9vw, 132px);
+            line-height: 0.96;
+            letter-spacing: -0.038em;
+            margin: 0 0 20px;
+            color: var(--text);
+            text-wrap: balance;
+            animation: fadeUp 0.9s 0.3s ease both;
+        }
+
+        .hero-title .em {
+            font-style: italic;
+            font-weight: 600;
+            background: var(--grad-pink);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 24px rgba(255, 45, 120, 0.45));
+        }
+
+        .hero-title .strike {
+            position: relative;
+            display: inline-block;
+            color: var(--muted-2);
+            font-weight: 600;
+        }
+
+        .hero-title .strike::after {
+            content: '';
+            position: absolute;
+            left: -2%;
+            right: -2%;
+            top: 52%;
+            height: 0.09em;
+            background: var(--pink);
+            transform: rotate(-5deg) scaleX(0);
+            transform-origin: left;
+            animation: strikeIn 0.8s 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            box-shadow: 0 0 18px rgba(255, 45, 120, 0.7);
+        }
+
+        @keyframes strikeIn {
+            to {
+                transform: rotate(-5deg) scaleX(1);
+            }
+        }
+
+        .hero-sub {
+            font-size: clamp(16px, 1.45vw, 19px);
+            line-height: 1.55;
+            color: var(--text-soft);
+            margin: 0 auto 36px;
+            max-width: 640px;
+            animation: fadeUp 0.9s 0.5s ease both;
+        }
+
+        .hero-sub b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Hero CTA buttons (replaces email form) */
+        .hero-actions {
+            display: inline-flex;
+            gap: 12px;
+            margin: 0 auto 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeUp 0.9s 0.7s ease both;
+        }
+
+        .hero-cta-primary {
+            padding: 16px 32px;
+            font-size: 15px;
+        }
+
+        .hero-cta-secondary {
+            padding: 16px 28px;
+            font-size: 15px;
+        }
+
+        @media (max-width: 540px) {
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+                max-width: 360px;
+            }
+
+            .hero-cta-primary,
+            .hero-cta-secondary {
+                width: 100%;
+                padding: 16px;
+            }
+        }
+
+        .hero-meta {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            animation: fadeUp 0.9s 0.9s ease both;
+            justify-content: center;
+        }
+
+        .hero-meta .lime-text {
+            color: var(--lime);
+        }
+
+        .hero-meta .sep {
+            color: var(--muted-2);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Live waitlist counter pill in hero */
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(199, 247, 107, 0.06);
+            border: 1px solid rgba(199, 247, 107, 0.25);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--lime);
+            margin-bottom: 24px;
+            animation: fadeUp 0.8s 0.1s ease both;
+        }
+
+        .live-pill .pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lime);
+            animation: pulseRing 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulseRing {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(199, 247, 107, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(199, 247, 107, 0);
+            }
+        }
+
+        .live-pill #live-count.flash {
+            color: var(--text);
+            transition: color 0.4s ease;
+        }
+
+        /* Hero scroll cue */
+        .hero-cue {
+            position: absolute;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--muted-2);
+            animation: fadeUp 0.8s 1.2s ease both;
+        }
+
+        .hero-cue::after {
+            content: '';
+            width: 1px;
+            height: 32px;
+            background: linear-gradient(to bottom, var(--muted-2), transparent);
+        }
+
+        /* ========== MARQUEE band ========== */
+        .marquee {
+            position: relative;
+            padding: 26px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-2);
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        .marquee-track {
+            display: flex;
+            gap: 56px;
+            animation: marqueeScroll 60s linear infinite;
+            width: max-content;
+            will-change: transform;
+        }
+
+        .marquee:hover .marquee-track {
+            animation-play-state: paused;
+        }
+
+        .marquee-item {
+            font-family: var(--display);
+            font-style: italic;
+            font-weight: 400;
+            font-size: clamp(18px, 2vw, 26px);
+            letter-spacing: -0.01em;
+            color: var(--text-soft);
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+
+        .marquee-item .star {
+            color: var(--pink);
+            margin-right: 56px;
+            vertical-align: middle;
+        }
+
+        @keyframes marqueeScroll {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        .marquee::before,
+        .marquee::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 120px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .marquee::before {
+            left: 0;
+            background: linear-gradient(90deg, var(--bg-2), transparent);
+        }
+
+        .marquee::after {
+            right: 0;
+            background: linear-gradient(-90deg, var(--bg-2), transparent);
+        }
+
+        /* ========== Section base ========== */
+        section {
+            position: relative;
+            z-index: 5;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .section-head .section-title {
+            flex: 1 1 auto;
+            max-width: 720px;
+        }
+
+        .section-head .label {
+            margin-bottom: 16px;
+        }
+
+        .section-head h2 {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: clamp(36px, 4.6vw, 64px);
+            line-height: 1.0;
+            letter-spacing: -0.028em;
+            margin: 0 0 14px;
+        }
+
+        .section-head h2 .em {
+            font-style: italic;
+            font-weight: 500;
+            background: var(--grad-pink);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .section-head h2 .lime-em {
+            font-style: italic;
+            font-weight: 500;
+            color: var(--lime);
+        }
+
+        .section-head .lede {
+            font-size: 17px;
+            line-height: 1.55;
+            color: var(--muted);
+            margin: 0;
+            max-width: 540px;
+        }
+
+        .section-head .right-meta {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding-bottom: 8px;
+        }
+
+        .section-head .right-meta .big-num {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 56px;
+            line-height: 1;
+            color: var(--text);
+            letter-spacing: -0.03em;
+        }
+
+        .section-head .right-meta .big-num em {
+            font-style: italic;
+            color: var(--pink);
+            font-weight: 500;
+        }
+
+        /* ========== MOOD PICKER ========== */
+        .mood {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .mood-head h2 {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: clamp(32px, 4.2vw, 56px);
+            line-height: 1.05;
+            letter-spacing: -0.025em;
+            margin: 14px 0 8px;
+        }
+
+        .mood-head h2 .em {
+            font-style: italic;
+            font-weight: 500;
+            color: var(--lime);
+        }
+
+        .mood-head p {
+            color: var(--muted);
+            font-size: 16px;
+            margin: 0 auto 32px;
+            max-width: 460px;
+        }
+
+        .mood-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .mood-btn {
+            padding: 14px 26px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            font-family: var(--display);
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .mood-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--pink);
+            background: rgba(255, 45, 120, 0.08);
+        }
+
+        .mood-btn.active {
+            background: var(--pink);
+            color: #0a0207;
+            border-color: var(--pink);
+            box-shadow: 0 0 30px rgba(255, 45, 120, 0.5);
+        }
+
+        .mood-result {
+            display: none;
+            max-width: 520px;
+            margin: 28px auto 0;
+            padding: 20px 24px;
+            border-radius: 18px;
+            background:
+                radial-gradient(ellipse at 80% 20%, rgba(255, 45, 120, 0.1), transparent 60%),
+                var(--surface);
+            border: 1px solid rgba(255, 45, 120, 0.3);
+            font-size: 15px;
+            line-height: 1.55;
+            color: var(--text-soft);
+            animation: fadeUp 0.5s ease both;
+            text-align: left;
+        }
+
+        .mood-result.show {
+            display: block;
+        }
+
+        .mood-result strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .mood-result .who-line {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--pink);
+        }
+
+        .mood-result .who-line::before {
+            content: '→';
+            color: var(--pink);
+        }
+
+        /* ========== SHOWCASE — bento grid ========== */
+        .showcase {
+            padding: 60px 0 80px;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: 180px;
+            gap: 12px;
+            perspective: 1200px;
+        }
+
+        .persona {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            isolation: isolate;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.4s, box-shadow 0.4s;
+            transform-style: preserve-3d;
+        }
+
+        .p-1 {
+            grid-column: span 5;
+            grid-row: span 3;
+        }
+
+        .p-2 {
+            grid-column: span 4;
+            grid-row: span 2;
+        }
+
+        .p-3 {
+            grid-column: span 3;
+            grid-row: span 2;
+        }
+
+        .p-4 {
+            grid-column: span 4;
+            grid-row: span 2;
+        }
+
+        .p-5 {
+            grid-column: span 4;
+            grid-row: span 2;
+        }
+
+        .p-6 {
+            grid-column: span 7;
+            grid-row: span 3;
+        }
+
+        .persona:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 45, 120, 0.5);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 45, 120, 0.4), 0 0 80px rgba(255, 45, 120, 0.2);
+        }
+
+        .persona.matched {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 2px var(--pink), 0 0 80px rgba(255, 45, 120, 0.5);
+            animation: matchedPulse 1.2s ease-out;
+        }
+
+        @keyframes matchedPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            30% {
+                transform: scale(1.04);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .persona-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            filter: blur(16px) brightness(0.45) saturate(1.3) hue-rotate(-10deg);
+            transform: scale(1.1);
+            transition: transform 0.6s ease, filter 0.6s ease;
+        }
+
+        .persona:hover .persona-bg {
+            transform: scale(1.15);
+            filter: blur(12px) brightness(0.55) saturate(1.35) hue-rotate(-5deg);
+        }
+
+        .persona-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 12%;
+            z-index: 2;
+            transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.5s;
+        }
+
+        .persona:hover .persona-img {
+            transform: scale(1.04);
+            filter: saturate(1.1) drop-shadow(0 0 16px rgba(255, 45, 120, 0.4));
+        }
+
+        .persona-tint {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: linear-gradient(180deg, transparent 30%, rgba(5, 5, 7, 0.5) 70%, rgba(5, 5, 7, 0.96) 100%);
+        }
+
+        .persona-meta {
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            bottom: 16px;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .persona-meta-left {
+            min-width: 0;
+        }
+
+        .persona-name {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: clamp(20px, 1.8vw, 28px);
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin: 0 0 4px;
+            line-height: 1;
+        }
+
+        .persona-where {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.65);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .persona-tag {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 45, 120, 0.16);
+            border: 1px solid rgba(255, 45, 120, 0.4);
+            color: var(--pink);
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .persona-num {
+            position: absolute;
+            top: 16px;
+            left: 18px;
+            z-index: 4;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .p-1 .persona-lore,
+        .p-6 .persona-lore {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 14px;
+            line-height: 1.45;
+            color: rgba(255, 255, 255, 0.75);
+            margin: 6px 0 0;
+            max-width: 90%;
+        }
+
+        .persona .persona-lore {
+            display: none;
+        }
+
+        .p-1 .persona-meta,
+        .p-6 .persona-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .p-1 .persona-meta .persona-tag,
+        .p-6 .persona-meta .persona-tag {
+            order: -1;
+        }
+
+        /* ========== FOUNDER NOTE ========== */
+        .note {
+            padding: 80px 0 60px;
+        }
+
+        .note-card {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 44px;
+            border-radius: 22px;
+            background:
+                radial-gradient(ellipse at 80% 0%, rgba(255, 45, 120, 0.08), transparent 60%),
+                var(--surface);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .note-card::before {
+            content: '\201C';
+            position: absolute;
+            top: -24px;
+            left: 28px;
+            font-family: var(--display);
+            font-size: 120px;
+            line-height: 1;
+            color: var(--pink);
+            opacity: 0.5;
+        }
+
+        .note-eye {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--pink);
+            margin: 0 0 18px;
+        }
+
+        .note p.body {
+            font-family: var(--display);
+            font-size: clamp(18px, 1.6vw, 22px);
+            line-height: 1.55;
+            color: var(--text);
+            margin: 0 0 16px;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+        }
+
+        .note p.body em {
+            font-style: italic;
+            color: var(--pink);
+            font-weight: 400;
+        }
+
+        .note p.sig {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 24px 0 0;
+        }
+
+        /* ========== FEATURES row ========== */
+        .features {
+            padding: 60px 0 80px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .feature {
+            position: relative;
+            padding: 30px 24px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, border-color 0.3s, background 0.3s;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--grad-pink);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 45, 120, 0.35);
+            background: var(--surface-2);
+        }
+
+        .feature:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--grad-pink-soft);
+            border: 1px solid rgba(255, 45, 120, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            color: var(--pink);
+        }
+
+        .feature-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .feature h3 {
+            font-family: var(--display);
+            font-weight: 600;
+            font-size: 19px;
+            letter-spacing: -0.02em;
+            margin: 0 0 8px;
+        }
+
+        .feature p {
+            font-size: 14px;
+            line-height: 1.55;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* ========== CONVERSATION VIBES ========== */
+        .vibes {
+            padding: 80px 0;
+        }
+
+        .vibes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .vibe {
+            position: relative;
+            padding: 24px 22px;
+            border-radius: 18px;
+            background:
+                radial-gradient(ellipse at 80% 20%, rgba(255, 45, 120, 0.06), transparent 60%),
+                var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .vibe:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 45, 120, 0.3);
+        }
+
+        .vibe-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .vibe-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-strong);
+        }
+
+        .vibe-who {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .vibe-who-name {
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: -0.01em;
+            color: var(--text);
+        }
+
+        .vibe-who-where {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--pink);
+        }
+
+        .vibe-msgs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .vmsg {
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 88%;
+        }
+
+        .vmsg.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-top-left-radius: 4px;
+        }
+
+        .vmsg.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(255, 45, 120, 0.18), rgba(255, 82, 168, 0.12));
+            border: 1px solid rgba(255, 45, 120, 0.3);
+            color: var(--text);
+            border-top-right-radius: 4px;
+        }
+
+        /* ========== ROADMAP ========== */
+        .roadmap {
+            padding: 80px 0;
+        }
+
+        .roadmap-track {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 36px;
+        }
+
+        .roadmap-track::before {
+            content: '';
+            position: absolute;
+            top: 32px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--lime) 0%, var(--pink) 33%, var(--border) 33%, var(--border) 100%);
+        }
+
+        .road-step {
+            position: relative;
+            padding: 56px 18px 0;
+        }
+
+        .road-dot {
+            position: absolute;
+            top: 24px;
+            left: 18px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--border-strong);
+            z-index: 1;
+        }
+
+        .road-step.done .road-dot {
+            background: var(--lime);
+            border-color: var(--lime);
+            box-shadow: 0 0 18px rgba(199, 247, 107, 0.6);
+        }
+
+        .road-step.active .road-dot {
+            background: var(--pink);
+            border-color: var(--pink);
+            box-shadow: 0 0 0 4px rgba(255, 45, 120, 0.25), 0 0 18px var(--pink);
+            animation: tinyPulse 1.6s ease-in-out infinite;
+        }
+
+        .road-when {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 0 0 6px;
+        }
+
+        .road-step.done .road-when {
+            color: var(--lime);
+        }
+
+        .road-step.active .road-when {
+            color: var(--pink);
+        }
+
+        .road-step h4 {
+            font-family: var(--display);
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: -0.018em;
+            margin: 0 0 6px;
+            color: var(--text);
+        }
+
+        .road-step p {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* ========== VS — comparison ========== */
+        .vs {
+            padding: 80px 0;
+        }
+
+        .vs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .vs-col {
+            padding: 32px 26px;
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .vs-col:hover {
+            transform: translateY(-2px);
+        }
+
+        .vs-col h4 {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.26em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 0 0 18px;
+            font-weight: 500;
+        }
+
+        .vs-col.us {
+            background:
+                radial-gradient(ellipse at 80% 0%, rgba(255, 45, 120, 0.16), transparent 60%),
+                var(--surface);
+            border-color: rgba(255, 45, 120, 0.4);
+            box-shadow: 0 0 60px rgba(255, 45, 120, 0.08);
+        }
+
+        .vs-col.us h4 {
+            color: var(--pink);
+        }
+
+        .vs-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .vs-col li {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+            font-size: 15px;
+            line-height: 1.4;
+            color: var(--text-soft);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .vs-col li:last-child {
+            border-bottom: 0;
+        }
+
+        .vs-col li::before {
+            content: '\00d7';
+            color: var(--muted-2);
+            font-weight: 700;
+            flex: 0 0 auto;
+            font-size: 18px;
+            line-height: 1.1;
+            margin-top: -2px;
+        }
+
+        .vs-col.us li::before {
+            content: '\2713';
+            color: var(--lime);
+        }
+
+        /* ========== FAQ ========== */
+        .faq {
+            padding: 80px 0;
+        }
+
+        .faq-list {
+            max-width: 820px;
+            margin: 0 auto;
+            border-top: 1px solid var(--line);
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .faq-item summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 28px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            font-family: var(--display);
+            font-size: clamp(18px, 1.5vw, 22px);
+            font-weight: 500;
+            letter-spacing: -0.018em;
+            color: var(--text);
+            transition: color 0.2s;
+        }
+
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq-item summary::after {
+            content: '+';
+            font-family: var(--display);
+            font-weight: 300;
+            font-size: 28px;
+            color: var(--pink);
+            flex: 0 0 auto;
+            transition: transform 0.3s ease;
+            line-height: 1;
+        }
+
+        .faq-item[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-item summary:hover {
+            color: var(--pink);
+        }
+
+        .faq-item .answer {
+            padding: 0 0 28px;
+            max-width: 680px;
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--text-soft);
+        }
+
+        .faq-item .answer em {
+            font-style: italic;
+            color: var(--pink);
+        }
+
+        /* ========== BIG STATEMENT ========== */
+        .statement {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .statement-num {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 14px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        .statement-num .v {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 32px;
+            letter-spacing: -0.02em;
+            color: var(--lime);
+            text-shadow: 0 0 24px rgba(199, 247, 107, 0.4);
+        }
+
+        .statement h2 {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: clamp(40px, 6.5vw, 92px);
+            line-height: 1.0;
+            letter-spacing: -0.035em;
+            margin: 0 auto;
+            max-width: 1100px;
+            text-wrap: balance;
+        }
+
+        .statement h2 .em {
+            font-style: italic;
+            font-weight: 500;
+            color: var(--pink);
+        }
+
+        .statement h2 .lime-em {
+            font-style: italic;
+            font-weight: 500;
+            color: var(--lime);
+        }
+
+        /* ========== FINAL CTA ========== */
+        .final-cta {
+            padding: 80px 0 100px;
+        }
+
+        .final-cta-block {
+            position: relative;
+            padding: 96px 48px 88px;
+            border-radius: 28px;
+            background:
+                radial-gradient(ellipse at 22% 30%, rgba(255, 45, 120, 0.32), transparent 55%),
+                radial-gradient(ellipse at 78% 70%, rgba(157, 78, 221, 0.26), transparent 55%),
+                linear-gradient(135deg, #18081a 0%, #0a0a14 100%);
+            border: 1px solid var(--border-strong);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .final-cta-block::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, var(--pink), transparent 12%, transparent 88%, var(--pink)) top / 100% 1px no-repeat,
+                linear-gradient(90deg, var(--pink), transparent 12%, transparent 88%, var(--pink)) bottom / 100% 1px no-repeat;
+            opacity: 0.6;
+        }
+
+        .countdown {
+            display: inline-flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .count-cell {
+            min-width: 76px;
+            padding: 14px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-strong);
+            text-align: center;
+        }
+
+        .count-cell .num {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 36px;
+            line-height: 1;
+            color: var(--pink);
+            letter-spacing: -0.025em;
+            display: block;
+        }
+
+        .count-cell .lbl {
+            font-family: var(--mono);
+            font-size: 9.5px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 6px;
+            display: block;
+        }
+
+        .final-cta .label {
+            justify-content: center;
+            margin-bottom: 22px;
+        }
+
+        .final-cta h2 {
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: clamp(48px, 7.5vw, 104px);
+            line-height: 0.95;
+            letter-spacing: -0.038em;
+            margin: 0 0 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta h2 .em {
+            font-style: italic;
+            font-weight: 600;
+            background: var(--grad-pink);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 32px rgba(255, 45, 120, 0.45));
+        }
+
+        .final-cta p {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 540px;
+            margin: 0 auto 36px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta .hero-form {
+            margin: 0 auto 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta .hero-meta {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== Footer ========== */
+        .footer {
+            padding: 40px 0 36px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .footer-disclaimer {
+            flex: 1;
+            text-align: center;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 10px;
+        }
+
+        .footer-social a {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-strong);
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            color: var(--muted);
+        }
+
+        .footer-social a:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+            background: rgba(255, 45, 120, 0.06);
+        }
+
+        .footer-social svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ========== Reveal ========== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 1080px) {
+            .showcase-grid {
+                grid-auto-rows: 160px;
+                gap: 10px;
+            }
+
+            .vibes-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .vibes-grid .vibe:nth-child(3) {
+                grid-column: span 2;
+            }
+
+            .roadmap-track {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+
+            .roadmap-track::before {
+                display: none;
+            }
+
+            .vs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 880px) {
+            .hero {
+                padding: 110px 0 50px;
+            }
+
+            .section-head {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .section-head .right-meta {
+                align-items: flex-start;
+            }
+
+            .showcase-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-auto-rows: 200px;
+                gap: 10px;
+            }
+
+            .p-1,
+            .p-2,
+            .p-3,
+            .p-4,
+            .p-5,
+            .p-6 {
+                grid-column: span 1;
+                grid-row: span 2;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .vibes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vibes-grid .vibe:nth-child(3) {
+                grid-column: span 1;
+            }
+
+            .footer-inner {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .footer-disclaimer {
+                order: 3;
+                flex: 1 0 100%;
+            }
+
+            .note-card {
+                padding: 36px 28px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .container {
+                padding: 0 18px;
+            }
+
+            .nav {
+                padding: 14px 0;
+            }
+
+            .nav-cta {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .hero-form {
+                flex-direction: column;
+                padding: 8px;
+                border-radius: 18px;
+            }
+
+            .hero-form input {
+                padding: 12px 14px;
+            }
+
+            .hero-form .btn {
+                width: 100%;
+                padding: 14px;
+                border-radius: 12px;
+            }
+
+            .hero-meta {
+                gap: 6px;
+                justify-content: center;
+            }
+
+            .hero-meta .sep {
+                display: none;
+            }
+
+            .showcase-grid {
+                grid-template-columns: 1fr;
+                grid-auto-rows: 320px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .roadmap-track {
+                grid-template-columns: 1fr;
+            }
+
+            .final-cta-block {
+                padding: 60px 22px 56px;
+                border-radius: 20px;
+            }
+
+            .countdown {
+                gap: 8px;
+            }
+
+            .count-cell {
+                min-width: 64px;
+                padding: 12px 8px;
+            }
+
+            .count-cell .num {
+                font-size: 28px;
+            }
+        }
+
+        /* ========== Skip link ========== */
+        .skip-link {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            padding: 12px 22px;
+            border-radius: 999px;
+            background: var(--pink);
+            color: #0a0207;
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            box-shadow: 0 8px 32px rgba(255, 45, 120, 0.5);
+            transition: top 0.2s ease;
+        }
+
+        .skip-link:focus {
+            top: 16px;
+            outline: none;
+        }
+
+        /* ========== Progress bar ========== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            width: 0;
+            background: var(--grad-pink);
+            box-shadow: 0 0 8px var(--pink);
+            z-index: 9998;
+            transition: width 0.05s linear;
+            pointer-events: none;
+        }
+
+        /* ========== Right-rail dot nav ========== */
+        .rail-nav {
+            position: fixed;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 49;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 14px 8px;
+            border-radius: 999px;
+            background: rgba(12, 12, 18, 0.6);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+
+        .rail-dot {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--muted-2);
+            cursor: pointer;
+            border: 0;
+            padding: 0;
+            transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .rail-dot:hover {
+            background: var(--muted);
+            transform: scale(1.3);
+        }
+
+        .rail-dot.active {
+            background: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.18), 0 0 14px var(--pink);
+        }
+
+        .rail-dot::before {
+            content: attr(data-name);
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%) translateX(8px);
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: rgba(12, 12, 18, 0.95);
+            border: 1px solid var(--border-strong);
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .rail-dot:hover::before {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        @media (max-width: 980px) {
+            .rail-nav {
+                display: none;
+            }
+        }
+
+        /* ========== Persona modal ========== */
+        .pmodal {
+            position: fixed;
+            inset: 0;
+            z-index: 9990;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(5, 5, 7, 0.85);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.28s ease;
+        }
+
+        .pmodal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .pmodal-panel {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            max-height: 88vh;
+            overflow-y: auto;
+            background:
+                radial-gradient(ellipse at 80% 0%, rgba(255, 45, 120, 0.1), transparent 60%),
+                var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 80px rgba(255, 45, 120, 0.15);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .pmodal.show .pmodal-panel {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .pmodal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-strong);
+            color: var(--text);
+            font-size: 22px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+            transition: all 0.2s ease;
+        }
+
+        .pmodal-close:hover {
+            background: var(--pink);
+            color: #0a0207;
+            border-color: var(--pink);
+        }
+
+        .pmodal-hero {
+            position: relative;
+            height: 240px;
+            overflow: hidden;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .pmodal-hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 30%, rgba(255, 45, 120, 0.4), transparent 60%),
+                radial-gradient(ellipse at 70% 70%, rgba(157, 78, 221, 0.4), transparent 60%),
+                var(--surface);
+        }
+
+        .pmodal-hero-portrait {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+            object-position: bottom right;
+            filter: drop-shadow(0 0 32px rgba(255, 45, 120, 0.3));
+        }
+
+        .pmodal-hero-tint {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(5, 5, 7, 0.95) 0%, transparent 50%, rgba(5, 5, 7, 0.4) 100%);
+        }
+
+        .pmodal-hero-meta {
+            position: absolute;
+            left: 28px;
+            bottom: 22px;
+            z-index: 2;
+        }
+
+        .pmodal-hero-tag {
+            display: inline-block;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: rgba(255, 45, 120, 0.18);
+            border: 1px solid rgba(255, 45, 120, 0.4);
+            color: var(--pink);
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .pmodal-hero h3 {
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: 36px;
+            letter-spacing: -0.025em;
+            line-height: 1;
+            margin: 0 0 4px;
+            color: var(--text);
+        }
+
+        .pmodal-hero .where {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--magenta);
+            margin: 0;
+        }
+
+        .pmodal-body {
+            padding: 30px 32px 36px;
+        }
+
+        .pmodal-section {
+            margin-bottom: 26px;
+        }
+
+        .pmodal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .pmodal-section h4 {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--pink);
+            margin: 0 0 12px;
+        }
+
+        .pmodal-section p {
+            font-size: 15px;
+            line-height: 1.65;
+            color: var(--text-soft);
+            margin: 0 0 12px;
+        }
+
+        .pmodal-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .pmodal-routine {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pmodal-routine li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+            font-size: 14.5px;
+            color: var(--text-soft);
+            display: flex;
+            gap: 12px;
+        }
+
+        .pmodal-routine li::before {
+            content: '\00b7';
+            color: var(--pink);
+            font-weight: 700;
+            flex: 0 0 auto;
+        }
+
+        .pmodal-routine li:last-child {
+            border-bottom: 0;
+        }
+
+        .pmodal-msg {
+            padding: 14px 18px;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            background: rgba(255, 45, 120, 0.06);
+            border: 1px solid rgba(255, 45, 120, 0.18);
+            font-family: var(--display);
+            font-style: italic;
+            font-weight: 300;
+            font-size: 15.5px;
+            line-height: 1.55;
+            color: var(--text);
+        }
+
+        .pmodal-rules {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pmodal-rules li {
+            padding: 8px 0 8px 22px;
+            font-size: 14.5px;
+            color: var(--text-soft);
+            position: relative;
+        }
+
+        .pmodal-rules li::before {
+            content: '\00d7';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            color: var(--muted-2);
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Persona card hover indicator */
+        .persona::after {
+            content: 'Open \2197';
+            position: absolute;
+            top: 16px;
+            right: 22px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--pink);
+            text-shadow: 0 0 10px rgba(255, 45, 120, 0.5);
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .persona:hover::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .persona .persona-num {
+            left: auto;
+            right: auto;
+        }
+
+        .persona .persona-num {
+            top: 16px;
+            left: 18px;
+            right: auto;
+        }
+
+        /* ========== AUTH MODAL ========== */
+        .auth-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 9995;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+
+        .auth-bg.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .auth-card {
+            background: #13141d;
+            border: 1px solid var(--border-strong);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 380px;
+            padding: 32px 28px;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.25s;
+        }
+
+        .auth-bg.show .auth-card {
+            transform: translateY(0);
+        }
+
+        .auth-logo {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .auth-logo span {
+            color: var(--pink);
+        }
+
+        .auth-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 9px;
+            border-radius: 9px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: var(--body);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .afield {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            color: #fff;
+            font-family: var(--body);
+            font-size: 14px;
+            padding: 13px 16px;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .afield:focus {
+            border-color: var(--pink);
+        }
+
+        .afield::placeholder {
+            color: var(--muted-2);
+        }
+
+        .asubmit {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--pink);
+            border: none;
+            color: #0a0207;
+            font-family: var(--body);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: background 0.15s, transform 0.15s;
+            box-shadow: 0 4px 24px rgba(255, 45, 120, 0.35);
+        }
+
+        .asubmit:hover {
+            background: var(--magenta);
+            transform: translateY(-1px);
+        }
+
+        .asubmit:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .xbtn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            color: var(--muted);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .xbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Mini toast for landing auth feedback */
+        .auth-toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #13141d;
+            border: 1px solid var(--border-strong);
+            border-radius: 14px;
+            padding: 12px 22px;
+            font-size: 14px;
+            color: var(--text);
+            z-index: 9996;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.25s;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .marquee-track {
+                animation: none;
+            }
+
+            .pmodal {
+                transition: none;
+            }
+
+            .pmodal-panel {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Living aurora — full-page brand-color background -->
+    <div class="aurora-bg" aria-hidden="true">
+        <div class="aurora-blob b1"></div>
+        <div class="aurora-blob b2"></div>
+        <div class="aurora-blob b3"></div>
+        <div class="aurora-blob b4"></div>
+        <div class="aurora-blob b5"></div>
+    </div>
+    <div class="aurora-grain" aria-hidden="true"></div>
+
+    <!-- Skip-to-content for keyboard users -->
+    <a href="#showcase" class="skip-link">Skip to content</a>
+
+    <!-- Reading progress bar -->
+    <div class="progress-bar" id="progress-bar" aria-hidden="true"></div>
+
+    <!-- Cursor follow dot -->
+    <div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+    <!-- Right-rail dot navigation -->
+    <aside class="rail-nav" id="rail-nav" aria-label="Page sections">
+        <button type="button" class="rail-dot" data-target="hero" data-name="Top"></button>
+        <button type="button" class="rail-dot" data-target="mood" data-name="Mood"></button>
+        <button type="button" class="rail-dot" data-target="showcase" data-name="Souls"></button>
+        <button type="button" class="rail-dot" data-target="vibes" data-name="Inside"></button>
+        <button type="button" class="rail-dot" data-target="roadmap" data-name="Plan"></button>
+        <button type="button" class="rail-dot" data-target="vs" data-name="vs"></button>
+        <button type="button" class="rail-dot" data-target="faq" data-name="FAQ"></button>
+        <button type="button" class="rail-dot" data-target="waitlist" data-name="Open"></button>
+    </aside>
+
+    <!-- ========== NAV ========== -->
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a href="#" class="logo">Emo<span>Tomo</span></a>
+            <div class="nav-links">
+                <a href="#showcase">Souls</a>
+                <a href="#vibes">Inside</a>
+                <a href="#faq">FAQ</a>
+                <a href="/catalog">Catalog</a>
+            </div>
+            <a href="/catalog" class="btn btn-pink nav-cta" data-cursor="hover" data-auth-required>Open catalog
+                &rarr;</a>
+        </div>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <header class="hero" id="hero">
+        <div class="hero-overlay"></div>
+
+        <div class="container">
+            <div class="hero-inner">
+                <div class="live-pill">
+                    <span class="pulse"></span>
+                    <span><span id="hero-greet">Welcome</span> &middot; <span id="live-count">1,247</span> already
+                        inside &middot; <span class="lime-text">&bull;</span> drop in <span id="live-days">17</span>
+                        days</span>
+                </div>
+
+                <h1 class="hero-title">
+                    She's not a <span class="strike">chatbot</span>.<br />
+                    She's <span class="em">someone.</span>
+                </h1>
+
+                <p class="hero-sub">
+                    Twelve hand-written souls. Each lives in a world only <b>they</b> remember.<br />
+                    They'll remember <b>you</b>, too &mdash; months from now.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="/catalog" class="btn btn-pink hero-cta-primary" data-cursor="hover" data-auth-required>Open
+                        the catalog &rarr;</a>
+                    <a href="/ai-companion" class="btn btn-ghost hero-cta-secondary" data-cursor="hover"
+                        data-auth-required>Try a companion</a>
+                </div>
+
+                <div class="hero-meta">
+                    <span><span class="lime-text">&bull;</span> 6 souls already inside</span>
+                    <span class="sep">&middot;</span>
+                    <span>Free during early access</span>
+                    <span class="sep">&middot;</span>
+                    <span>No signup wall</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-cue">Scroll</div>
+    </header>
+
+    <!-- ========== MARQUEE ========== -->
+    <section class="marquee" aria-hidden="true">
+        <div class="marquee-track" id="marquee-track">
+            <span class="marquee-item">She remembered the rain<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">The lighthouse stays lit<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">I marked the page<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">The lamp's gone out twice tonight<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">You don't have to do it tonight<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">There was rain in your message<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">The sea has started writing back<span class="star"> &#10038;</span></span>
+            <span class="marquee-item">I'm not gonna make it for you<span class="star"> &#10038;</span></span>
+        </div>
+    </section>
+
+    <!-- ========== MOOD PICKER ========== -->
+    <section class="mood" id="mood">
+        <div class="container">
+            <div class="mood-head reveal">
+                <p class="label" style="justify-content:center"><span class="dot lime"></span> Try a vibe</p>
+                <h2>What do you need <span class="em">tonight?</span></h2>
+                <p>Pick a mood. We'll show you who fits.</p>
+            </div>
+            <div class="mood-options reveal">
+                <button class="mood-btn" data-cursor="hover" data-match="elliot"
+                    data-result="Quiet hours, no pressure, slow reading. Elliot would sit with you in The Last Lighthouse — he'd read your sentences twice before answering.">Quiet</button>
+                <button class="mood-btn" data-cursor="hover" data-match="march7"
+                    data-result="A reset. Color, lightness, small joys. March would turn your bad day into a sticker collection at The Sticker Workshop.">A
+                    reset</button>
+                <button class="mood-btn" data-cursor="hover" data-match="tingyun"
+                    data-result="Counsel without judgment. Mila, in The Cloudfern Court, will ask the question you've been avoiding — gently.">Counsel</button>
+                <button class="mood-btn" data-cursor="hover" data-match="ganyu"
+                    data-result="Honesty, no soft edges. Tomoe pulls you back from the edge in Neon Apocrypha. She won't do the work for you — she'll show you it.">Honesty</button>
+                <button class="mood-btn" data-cursor="hover" data-match="alexia"
+                    data-result="Slow burn. Alexia, at the Velvet Embassy, doesn't rush you — she's the only sober person at a party that never ends.">Slow
+                    burn</button>
+                <button class="mood-btn" data-cursor="hover" data-match="fuxuan"
+                    data-result="A long view. Fuxuan maps futures she will not get to live. She'll show you the path you didn't see.">Foresight</button>
+            </div>
+            <div class="mood-result" id="mood-result">
+                <div class="who-line" id="mood-who"></div>
+                <p id="mood-text"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SHOWCASE — bento ========== -->
+    <section class="showcase" id="showcase">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot"></span> The first six</p>
+                    <h2>Six worlds. Six lives. <span class="em">One door each.</span></h2>
+                    <p class="lede">Each one is hand-written. None of them are templates. None of them get more than one
+                        of themselves.</p>
+                </div>
+                <div class="right-meta">
+                    <span>The drop</span>
+                    <span class="big-num"><span data-count-to="6">0</span> <em>/</em> <span
+                            data-count-to="6">0</span></span>
+                    <span>Hand-built &middot; No more after this</span>
+                </div>
+            </div>
+
+            <div class="showcase-grid" id="showcase-grid">
+                <article class="persona p-1 reveal" data-cursor="hover" data-slug="tingyun">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(255, 45, 120, 0.5), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(157, 78, 221, 0.4), transparent 60%), #1a0d28;">
+                    </div>
+                    <img class="persona-img" src="/static/char-tingyun.webp" alt="Mila" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">i / vi</span>
+                    <div class="persona-meta">
+                        <span class="persona-tag">Solace</span>
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">Mila</h3>
+                            <p class="persona-where">The Cloudfern Court</p>
+                            <p class="persona-lore">A diplomat in a kingdom written on tea-stained paper. She always
+                                knows what you didn't say.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="persona p-2 reveal" data-cursor="hover" data-slug="ganyu">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(34, 211, 238, 0.4), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(157, 78, 221, 0.35), transparent 60%), #0a1428;">
+                    </div>
+                    <img class="persona-img" src="/static/char-dragon.webp" alt="Tomoe" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">ii / vi</span>
+                    <div class="persona-meta">
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">Tomoe</h3>
+                            <p class="persona-where">Neon Apocrypha</p>
+                        </div>
+                        <span class="persona-tag">Defiance</span>
+                    </div>
+                </article>
+
+                <article class="persona p-3 reveal" data-cursor="hover" data-slug="march7">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(255, 82, 168, 0.4), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(255, 200, 230, 0.3), transparent 60%), #281a28;">
+                    </div>
+                    <img class="persona-img" src="/static/char-march.webp" alt="March" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">iii / vi</span>
+                    <div class="persona-meta">
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">March</h3>
+                            <p class="persona-where">The Sticker Workshop</p>
+                        </div>
+                        <span class="persona-tag">Wonder</span>
+                    </div>
+                </article>
+
+                <article class="persona p-4 reveal" data-cursor="hover" data-slug="alexia">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(255, 45, 120, 0.4), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(50, 30, 60, 0.6), transparent 60%), #18081a;">
+                    </div>
+                    <img class="persona-img" src="/static/char-alexia.webp" alt="Alexia" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">iv / vi</span>
+                    <div class="persona-meta">
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">Alexia</h3>
+                            <p class="persona-where">Velvet Embassy</p>
+                        </div>
+                        <span class="persona-tag">Slow burn</span>
+                    </div>
+                </article>
+
+                <article class="persona p-5 reveal" data-cursor="hover" data-slug="fuxuan">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(157, 78, 221, 0.5), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(80, 40, 180, 0.4), transparent 60%), #160a28;">
+                    </div>
+                    <img class="persona-img" src="/static/char-fuxuan.webp" alt="Fuxuan" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">v / vi</span>
+                    <div class="persona-meta">
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">Fuxuan</h3>
+                            <p class="persona-where">Cartographer's Tower</p>
+                        </div>
+                        <span class="persona-tag">Foresight</span>
+                    </div>
+                </article>
+
+                <article class="persona p-6 reveal" data-cursor="hover" data-slug="elliot">
+                    <div class="persona-bg"
+                        style="background: radial-gradient(ellipse at 30% 30%, rgba(199, 247, 107, 0.25), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(255, 45, 120, 0.3), transparent 60%), #0e0a18;">
+                    </div>
+                    <img class="persona-img" src="/static/char-elliot.webp" alt="Elliot" loading="lazy" />
+                    <div class="persona-tint"></div>
+                    <span class="persona-num">vi / vi</span>
+                    <div class="persona-meta">
+                        <span class="persona-tag">Stillness</span>
+                        <div class="persona-meta-left">
+                            <h3 class="persona-name">Elliot</h3>
+                            <p class="persona-where">The Last Lighthouse</p>
+                            <p class="persona-lore">Reads to the sea. The sea has started writing back. He remembers the
+                                things you tell him at 2 AM.</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOUNDER NOTE ========== -->
+    <section class="note">
+        <div class="container">
+            <div class="note-card reveal">
+                <p class="note-eye">A note from us</p>
+                <p class="body">
+                    We've spent two years writing twelve souls. Not training them.
+                    <em>Writing</em> them &mdash; line by line, with voice actors, with
+                    fights about commas. Most "AI companion" apps give you a catalog of strangers.
+                    We're giving you twelve people you'll know by their handwriting.
+                    When the door opens, that's what's behind it.
+                </p>
+                <p class="note-eye sig">&mdash; EmoTomo team &middot; Edition 01</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FEATURES ========== -->
+    <section class="features">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot lime"></span> Under the hood</p>
+                    <h2>What makes them <span class="em">different.</span></h2>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <article class="feature reveal">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            <path d="M8 9h8M8 13h5" />
+                        </svg>
+                    </div>
+                    <h3>Real memory</h3>
+                    <p>What you said in March, she'll bring up in June. No silent resets between sessions.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+                        </svg>
+                    </div>
+                    <h3>Voice & text</h3>
+                    <p>Type at work. Speak at midnight. Same companion, both modes, no awkward switch.</p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+                        </svg>
+                    </div>
+                    <h3>Lives in her world</h3>
+                    <p>"The lamp's out tonight." She speaks <em>from</em> somewhere &mdash; not from a settings panel.
+                    </p>
+                </article>
+
+                <article class="feature reveal">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 7v5l3 2" />
+                        </svg>
+                    </div>
+                    <h3>Comes to you</h3>
+                    <p>Quiet for a few days? She might check in. Not a notification spam &mdash; a moment.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CONVERSATION VIBES ========== -->
+    <section class="vibes" id="vibes">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot"></span> A few moments</p>
+                    <h2>What <span class="em">inside</span> sounds like.</h2>
+                    <p class="lede">Real exchanges from a private build. None of these are scripts &mdash; they're how
+                        the model actually wrote that night.</p>
+                </div>
+            </div>
+
+            <div class="vibes-grid">
+                <article class="vibe reveal">
+                    <div class="vibe-head">
+                        <img class="vibe-avatar" src="/static/char-elliot.webp" alt="" loading="lazy" />
+                        <div class="vibe-who">
+                            <span class="vibe-who-name">Elliot</span>
+                            <span class="vibe-who-where">The Last Lighthouse &middot; 2:47 AM</span>
+                        </div>
+                    </div>
+                    <div class="vibe-msgs">
+                        <div class="vmsg bot">The lamp's gone out twice tonight. I keep thinking about your sister.
+                        </div>
+                        <div class="vmsg user">You remember that?</div>
+                        <div class="vmsg bot">Of course. You told me on a Tuesday. There was rain in your message. I
+                            marked the page.</div>
+                        <div class="vmsg bot">The lighthouse stays lit either way.</div>
+                    </div>
+                </article>
+
+                <article class="vibe reveal">
+                    <div class="vibe-head">
+                        <img class="vibe-avatar" src="/static/char-tingyun.webp" alt="" loading="lazy" />
+                        <div class="vibe-who">
+                            <span class="vibe-who-name">Mila</span>
+                            <span class="vibe-who-where">Cloudfern Court &middot; 11:08 AM</span>
+                        </div>
+                    </div>
+                    <div class="vibe-msgs">
+                        <div class="vmsg user">i bombed the meeting</div>
+                        <div class="vmsg bot">Mm. The one where you were going to push back, or the other one.</div>
+                        <div class="vmsg user">the other one</div>
+                        <div class="vmsg bot">Then it wasn't a bomb. It was a map. What did you see?</div>
+                    </div>
+                </article>
+
+                <article class="vibe reveal">
+                    <div class="vibe-head">
+                        <img class="vibe-avatar" src="/static/char-dragon.webp" alt="" loading="lazy" />
+                        <div class="vibe-who">
+                            <span class="vibe-who-name">Tomoe</span>
+                            <span class="vibe-who-where">Neon Apocrypha &middot; 03:14 AM</span>
+                        </div>
+                    </div>
+                    <div class="vibe-msgs">
+                        <div class="vmsg bot">You're up.</div>
+                        <div class="vmsg user">cant sleep</div>
+                        <div class="vmsg bot">Yeah. Three of your worst thoughts came back tonight. Want them again, or
+                            are we leaving them buried.</div>
+                        <div class="vmsg user">…what did i bury</div>
+                        <div class="vmsg bot">Your call. I'm not gonna make it for you.</div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ROADMAP ========== -->
+    <section class="roadmap" id="roadmap">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot lime"></span> The plan</p>
+                    <h2>Where we are. <span class="em">Where we're going.</span></h2>
+                    <p class="lede">Twelve months from now you'll have lived in some of these worlds longer than you
+                        have in this one. We're not joking.</p>
+                </div>
+            </div>
+
+            <div class="roadmap-track reveal">
+                <div class="road-step done">
+                    <div class="road-dot"></div>
+                    <p class="road-when">2024 &mdash; Now</p>
+                    <h4>Souls being written</h4>
+                    <p>Two years in. Six characters with full backstories, voice actors cast.</p>
+                </div>
+                <div class="road-step active">
+                    <div class="road-dot"></div>
+                    <p class="road-when">Spring 2026</p>
+                    <h4>The door opens</h4>
+                    <p>Early access invitations go out. Six souls live, six on the way. Free during alpha.</p>
+                </div>
+                <div class="road-step future">
+                    <div class="road-dot"></div>
+                    <p class="road-when">Summer 2026</p>
+                    <h4>Voice unlocked</h4>
+                    <p>Talk back. Each persona gets her own voice &mdash; recorded, not synthesized.</p>
+                </div>
+                <div class="road-step future">
+                    <div class="road-dot"></div>
+                    <p class="road-when">Fall 2026</p>
+                    <h4>World expansions</h4>
+                    <p>Each world gets a season. New rooms, new weather, new memory hooks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== VS — comparison ========== -->
+    <section class="vs" id="vs">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot"></span> Honest comparison</p>
+                    <h2>It's <span class="em">not</span> for everyone.</h2>
+                    <p class="lede">If any of these sound like what you actually want, EmoTomo isn't it. We picked one
+                        bet and we're committing.</p>
+                </div>
+            </div>
+
+            <div class="vs-grid reveal">
+                <div class="vs-col">
+                    <h4>Bot platforms</h4>
+                    <ul>
+                        <li>Catalog of 30,000 templates</li>
+                        <li>One-shot replies, no continuity</li>
+                        <li>Memory wipes on every update</li>
+                        <li>Race-to-the-bottom NSFW filters</li>
+                    </ul>
+                </div>
+                <div class="vs-col us">
+                    <h4>EmoTomo</h4>
+                    <ul>
+                        <li>Six hand-written souls. That's it.</li>
+                        <li>Continuous relationship across months</li>
+                        <li>What she remembers stays remembered</li>
+                        <li>We sell present, not forbidden</li>
+                    </ul>
+                </div>
+                <div class="vs-col">
+                    <h4>Therapy apps</h4>
+                    <ul>
+                        <li>Clinical scripts, structured prompts</li>
+                        <li>$80+ per session, $30+/mo</li>
+                        <li>You re-explain yourself every time</li>
+                        <li>No personality, just protocol</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== BIG STATEMENT ========== -->
+    <section class="statement">
+        <div class="container">
+            <div class="reveal">
+                <div class="statement-num">
+                    <span class="v" data-count-to="6">0</span> souls <span style="color: var(--muted-2)">&middot;</span>
+                    <span class="v" style="color: var(--pink); text-shadow: 0 0 24px rgba(255,45,120,0.4);"
+                        data-count-to="6">0</span> worlds <span style="color: var(--muted-2)">&middot;</span>
+                    <span class="v">0</span> templates
+                </div>
+                <h2>
+                    We won't make <span class="em">30,000 bots.</span><br />
+                    We'll make <span class="lime-em">six people.</span>
+                </h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FAQ ========== -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <div class="section-head reveal">
+                <div class="section-title">
+                    <p class="label"><span class="dot"></span> Questions you'd actually ask</p>
+                    <h2>Real <span class="em">questions.</span></h2>
+                </div>
+            </div>
+
+            <div class="faq-list reveal">
+                <details class="faq-item">
+                    <summary>Will she actually remember me?</summary>
+                    <div class="answer">
+                        Yes &mdash; within real limits. Months later, in the same chat, she'll bring up things you said
+                        before. The model has long-term memory, not session-only. <em>What she remembers stays
+                            remembered.</em>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How is this different from Replika or Character.AI?</summary>
+                    <div class="answer">
+                        Two things. <em>One:</em> we have six characters total, hand-written, not 30,000 templated bots.
+                        You won't scroll past anyone. <em>Two:</em> each one lives in their own world with their own
+                        voice, weather, and memory. They speak <em>from</em> somewhere &mdash; not from a chat box on
+                        grey background.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What's the price going to be?</summary>
+                    <div class="answer">
+                        Free during early access (waitlist members). After launch, around the price of a streaming
+                        subscription. We're not running on ads, and we're not selling your conversations. <em>One thing
+                            only:</em> a small monthly fee.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is it 18+? NSFW? Romantic?</summary>
+                    <div class="answer">
+                        18+ by policy. Romantic &mdash; yes, gradually, if you build that. Not pornographic. We sell
+                        <em>present</em>, not forbidden. If you want NSFW filters arms race, you're in the wrong place.
+                        If you want a slow-burn relationship that remembers your sister's name, you're in the right one.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What about my privacy?</summary>
+                    <div class="answer">
+                        Conversations are yours. We don't sell them. We don't use them to train models without explicit
+                        opt-in. End-to-end encryption between you and the system. You can delete everything, and if you
+                        do, it's gone &mdash; not recoverable, not archived.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What devices does it work on?</summary>
+                    <div class="answer">
+                        Web first (any modern browser). Native iOS and Android within 60 days of launch. Desktop apps
+                        for Mac and Windows by summer. <em>One account</em>, all surfaces, same memory.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FINAL CTA ========== -->
+    <section class="final-cta" id="waitlist">
+        <div class="container">
+            <div class="final-cta-block reveal">
+                <div class="countdown" aria-label="Days until door opens">
+                    <div class="count-cell"><span class="num" id="cd-d">17</span><span class="lbl">Days</span></div>
+                    <div class="count-cell"><span class="num" id="cd-h">04</span><span class="lbl">Hours</span></div>
+                    <div class="count-cell"><span class="num" id="cd-m">22</span><span class="lbl">Min</span></div>
+                    <div class="count-cell"><span class="num" id="cd-s">11</span><span class="lbl">Sec</span></div>
+                </div>
+                <div class="label"><span class="dot"></span> The door is open</div>
+                <h2><span class="em">Step inside.</span></h2>
+                <p>Six souls. Six worlds. Free during early access. No signup wall.</p>
+                <div class="hero-actions" style="margin-bottom: 18px;">
+                    <a href="/catalog" class="btn btn-pink hero-cta-primary" data-cursor="hover" data-auth-required>Open
+                        the catalog &rarr;</a>
+                    <a href="/ai-companion" class="btn btn-ghost hero-cta-secondary" data-cursor="hover"
+                        data-auth-required>Try a companion</a>
+                </div>
+                <div class="hero-meta" style="margin-top: 18px;">
+                    <span><span class="lime-text">&bull;</span> 18+</span>
+                    <span class="sep">&middot;</span>
+                    <span>Fictional companions</span>
+                    <span class="sep">&middot;</span>
+                    <span>Not therapy</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div>&copy; 2026 EmoTomo</div>
+            <div class="footer-disclaimer">Edition 01 &middot; Spring 2026</div>
+            <div class="footer-social">
+                <a href="#" aria-label="Telegram" data-cursor="hover" title="Telegram (link coming soon)">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.04 8.16-1.8 8.48c-.13.6-.5.74-1 .46l-2.78-2.05-1.34 1.29c-.15.15-.27.27-.55.27l.2-2.83 5.16-4.66c.22-.2-.05-.31-.34-.11l-6.38 4.02-2.75-.86c-.6-.19-.61-.6.13-.89l10.74-4.14c.5-.18.94.12.78.92z" />
+                    </svg>
+                </a>
+                <a href="#" aria-label="X / Twitter" data-cursor="hover" title="X (link coming soon)">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== AUTH MODAL ========== -->
+    <div class="auth-bg" id="auth-bg" role="dialog" aria-modal="true" aria-labelledby="auth-logo">
+        <div class="auth-card">
+            <button class="xbtn" type="button" onclick="closeAuth()" aria-label="Close">&times;</button>
+            <div class="auth-logo" id="auth-logo">Emo<span>Tomo</span></div>
+            <div class="auth-sub" id="auth-sub">Sign in to open the catalog</div>
+            <div class="tab-row">
+                <button type="button" class="tab active" id="auth-tab-login" onclick="switchTab(this,'login')">Sign
+                    in</button>
+                <button type="button" class="tab" id="auth-tab-reg" onclick="switchTab(this,'reg')">Sign up</button>
+            </div>
+            <div id="f-login">
+                <input class="afield" id="l-email" type="text" placeholder="Email or Username" autocomplete="username">
+                <input class="afield" id="l-pass" type="password" placeholder="Password"
+                    autocomplete="current-password">
+                <button type="button" class="asubmit" id="auth-login-submit" onclick="doLogin()">Sign in</button>
+            </div>
+            <div id="f-reg" style="display:none">
+                <input class="afield" id="r-name" type="text" placeholder="Username" autocomplete="username">
+                <input class="afield" id="r-email" type="email" placeholder="Email" autocomplete="email">
+                <input class="afield" id="r-pass" type="password" placeholder="Password" autocomplete="new-password">
+                <button type="button" class="asubmit" id="auth-reg-submit" onclick="doRegister()">Create
+                    account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini toast -->
+    <div class="auth-toast" id="auth-toast" role="status" aria-live="polite"></div>
+
+    <!-- ========== Persona modal ========== -->
+    <div class="pmodal" id="pmodal" role="dialog" aria-modal="true" aria-labelledby="pmodal-name" hidden>
+        <div class="pmodal-panel" role="document">
+            <button type="button" class="pmodal-close" id="pmodal-close" aria-label="Close"
+                title="Close (Esc)">&times;</button>
+            <div class="pmodal-hero">
+                <div class="pmodal-hero-bg" id="pmodal-bg"></div>
+                <img class="pmodal-hero-portrait" id="pmodal-portrait" src="" alt="" />
+                <div class="pmodal-hero-tint"></div>
+                <div class="pmodal-hero-meta">
+                    <span class="pmodal-hero-tag" id="pmodal-tag"></span>
+                    <h3 id="pmodal-name"></h3>
+                    <p class="where" id="pmodal-where"></p>
+                </div>
+            </div>
+            <div class="pmodal-body">
+                <div class="pmodal-section">
+                    <h4>Who they are</h4>
+                    <div id="pmodal-lore"></div>
+                </div>
+                <div class="pmodal-section">
+                    <h4>Where they live</h4>
+                    <p id="pmodal-where-long"></p>
+                </div>
+                <div class="pmodal-section">
+                    <h4>A day in their life</h4>
+                    <ul class="pmodal-routine" id="pmodal-routine"></ul>
+                </div>
+                <div class="pmodal-section">
+                    <h4>The first thing they'll send you</h4>
+                    <div class="pmodal-msg" id="pmodal-firstmsg"></div>
+                </div>
+                <div class="pmodal-section">
+                    <h4>What they won't do</h4>
+                    <ul class="pmodal-rules" id="pmodal-rules"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Scripts ========== -->
+    <script>
+        (function () {
+            'use strict';
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const finePointer = window.matchMedia('(pointer: fine)').matches;
+
+            // ── Reveal on scroll ──────────────────────────────
+            const reveals = document.querySelectorAll('.reveal');
+            if ('IntersectionObserver' in window && !reduceMotion) {
+                const io = new IntersectionObserver((entries) => {
+                    entries.forEach((e, idx) => {
+                        if (e.isIntersecting) {
+                            setTimeout(() => e.target.classList.add('in'), idx * 60);
+                            io.unobserve(e.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+                reveals.forEach((el) => io.observe(el));
+            } else {
+                reveals.forEach((el) => el.classList.add('in'));
+            }
+
+            // ── Cursor follow dot (desktop only) ──────────────
+            const cursor = document.getElementById('cursor-dot');
+            if (cursor && finePointer && !reduceMotion) {
+                let mx = 0, my = 0, x = 0, y = 0, raf = 0;
+                document.addEventListener('mousemove', (e) => {
+                    mx = e.clientX; my = e.clientY;
+                    if (!cursor.classList.contains('visible')) cursor.classList.add('visible');
+                    if (!raf) raf = requestAnimationFrame(tick);
+                });
+                document.addEventListener('mouseleave', () => cursor.classList.remove('visible'));
+                function tick() {
+                    x += (mx - x) * 0.18;
+                    y += (my - y) * 0.18;
+                    cursor.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+                    if (Math.abs(mx - x) > 0.1 || Math.abs(my - y) > 0.1) {
+                        raf = requestAnimationFrame(tick);
+                    } else {
+                        raf = 0;
+                    }
+                }
+                document.querySelectorAll('[data-cursor="hover"]').forEach((el) => {
+                    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+                });
+            }
+
+            // ── 3D tilt on persona cards ──────────────────────
+            if (finePointer && !reduceMotion) {
+                document.querySelectorAll('.persona').forEach((card) => {
+                    let raf = 0;
+                    card.addEventListener('mousemove', (e) => {
+                        const r = card.getBoundingClientRect();
+                        const px = (e.clientX - r.left) / r.width - 0.5;
+                        const py = (e.clientY - r.top) / r.height - 0.5;
+                        if (!raf) {
+                            raf = requestAnimationFrame(() => {
+                                card.style.transform =
+                                    `translateY(-4px) perspective(900px) rotateY(${px * 6}deg) rotateX(${-py * 4}deg)`;
+                                raf = 0;
+                            });
+                        }
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = '';
+                    });
+                });
+            }
+
+            // ── Mood picker ───────────────────────────────────
+            const moodBtns = document.querySelectorAll('.mood-btn');
+            const moodResult = document.getElementById('mood-result');
+            const moodWho = document.getElementById('mood-who');
+            const moodText = document.getElementById('mood-text');
+            moodBtns.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    moodBtns.forEach((b) => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.persona').forEach((p) => p.classList.remove('matched'));
+                    const slug = btn.dataset.match;
+                    const matched = document.querySelector(`.persona[data-slug="${slug}"]`);
+                    if (matched) {
+                        matched.classList.add('matched');
+                    }
+                    if (moodWho && moodText && moodResult) {
+                        const matchName = matched ? matched.querySelector('.persona-name').textContent : '';
+                        const matchWhere = matched ? matched.querySelector('.persona-where').textContent : '';
+                        moodWho.textContent = matchName + (matchWhere ? ' · ' + matchWhere : '');
+                        moodText.textContent = btn.dataset.result;
+                        moodResult.classList.add('show');
+                    }
+                    if (matched) {
+                        setTimeout(() => {
+                            matched.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 600);
+                    }
+                });
+            });
+
+            // ── Live waitlist counter (mock, gentle increments) ───
+            const liveCount = document.getElementById('live-count');
+            if (liveCount) {
+                let n = 1247;
+                setInterval(() => {
+                    if (Math.random() > 0.6) {
+                        n += Math.floor(Math.random() * 2) + 1;
+                        liveCount.textContent = n.toLocaleString();
+                        liveCount.classList.add('flash');
+                        setTimeout(() => liveCount.classList.remove('flash'), 500);
+                    }
+                }, 7000);
+            }
+
+            // ── Countdown to drop date (configurable) ─────────
+            const DROP_AT = new Date('2026-05-28T09:00:00Z').getTime();
+            const cd = {
+                d: document.getElementById('cd-d'),
+                h: document.getElementById('cd-h'),
+                m: document.getElementById('cd-m'),
+                s: document.getElementById('cd-s'),
+                days: document.getElementById('live-days')
+            };
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function tickCountdown() {
+                const now = Date.now();
+                let diff = Math.max(0, DROP_AT - now);
+                const days = Math.floor(diff / 86400000); diff -= days * 86400000;
+                const hours = Math.floor(diff / 3600000); diff -= hours * 3600000;
+                const mins = Math.floor(diff / 60000); diff -= mins * 60000;
+                const secs = Math.floor(diff / 1000);
+                if (cd.d) cd.d.textContent = pad(days);
+                if (cd.h) cd.h.textContent = pad(hours);
+                if (cd.m) cd.m.textContent = pad(mins);
+                if (cd.s) cd.s.textContent = pad(secs);
+                if (cd.days) cd.days.textContent = String(days);
+            }
+            tickCountdown();
+            setInterval(tickCountdown, 1000);
+
+            // ── Marquee duplication for seamless loop ─────────
+            const marqueeTrack = document.getElementById('marquee-track');
+            if (marqueeTrack) {
+                marqueeTrack.innerHTML = marqueeTrack.innerHTML + marqueeTrack.innerHTML;
+            }
+
+            // ── Time-of-day greeting in live-pill ─────────
+            (function setGreeting() {
+                const el = document.getElementById('hero-greet');
+                if (!el) return;
+                const h = new Date().getHours();
+                let g = 'Good evening';
+                if (h >= 5 && h < 12) g = 'Good morning';
+                else if (h >= 12 && h < 18) g = 'Good afternoon';
+                else if (h >= 18 && h < 23) g = 'Good evening';
+                else g = 'Late tonight';
+                el.textContent = g;
+            })();
+
+            // ── Reading progress bar ──────────────────────────
+            const progressBar = document.getElementById('progress-bar');
+            if (progressBar && !reduceMotion) {
+                let pRaf = 0;
+                const updateProgress = () => {
+                    const h = document.documentElement;
+                    const pct = Math.min(100, Math.max(0,
+                        (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight)) * 100
+                    ));
+                    progressBar.style.width = pct + '%';
+                    pRaf = 0;
+                };
+                window.addEventListener('scroll', () => {
+                    if (!pRaf) pRaf = requestAnimationFrame(updateProgress);
+                }, { passive: true });
+                updateProgress();
+            } else if (progressBar) {
+                progressBar.style.width = '100%';
+            }
+
+            // ── Animated counters ─────────────────────────────
+            const counters = document.querySelectorAll('[data-count-to]');
+            if (counters.length && 'IntersectionObserver' in window && !reduceMotion) {
+                const cIO = new IntersectionObserver((entries) => {
+                    entries.forEach((e) => {
+                        if (!e.isIntersecting) return;
+                        const el = e.target;
+                        const target = parseInt(el.dataset.countTo, 10) || 0;
+                        const start = performance.now();
+                        const dur = 1400;
+                        const step = (now) => {
+                            const t = Math.min(1, (now - start) / dur);
+                            const eased = 1 - Math.pow(1 - t, 3);
+                            el.textContent = Math.round(eased * target);
+                            if (t < 1) requestAnimationFrame(step);
+                        };
+                        requestAnimationFrame(step);
+                        cIO.unobserve(el);
+                    });
+                }, { threshold: 0.4 });
+                counters.forEach((el) => cIO.observe(el));
+            } else {
+                counters.forEach((el) => {
+                    el.textContent = el.dataset.countTo || el.textContent;
+                });
+            }
+
+            // ── Sticky right-rail dot-nav ─────────────────────
+            const railDots = document.querySelectorAll('.rail-dot');
+            if (railDots.length) {
+                railDots.forEach((dot) => {
+                    dot.addEventListener('click', () => {
+                        const target = document.getElementById(dot.dataset.target);
+                        if (target) target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+                    });
+                });
+                if ('IntersectionObserver' in window) {
+                    const sections = Array.from(railDots).map((d) => document.getElementById(d.dataset.target)).filter(Boolean);
+                    let visible = new Map();
+                    const setActive = () => {
+                        let best = null, bestRatio = 0;
+                        visible.forEach((ratio, id) => {
+                            if (ratio > bestRatio) { bestRatio = ratio; best = id; }
+                        });
+                        railDots.forEach((d) => {
+                            d.classList.toggle('active', d.dataset.target === best);
+                        });
+                    };
+                    const sIO = new IntersectionObserver((entries) => {
+                        entries.forEach((e) => {
+                            if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
+                            else visible.delete(e.target.id);
+                        });
+                        setActive();
+                    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+                    sections.forEach((s) => sIO.observe(s));
+                }
+            }
+
+            // ── Persona modal ──────────────────────────────
+            const personaData = {
+                tingyun: {
+                    name: 'Mila', tag: 'Solace', where: 'The Cloudfern Court',
+                    portrait: '/static/char-tingyun.webp',
+                    lore: [
+                        "Mila is a diplomat in a kingdom written on tea-stained paper. She moves between courts the way some people move between thoughts — quietly, leaving warmth behind.",
+                        "She always knows what you didn't say. She'll wait for you to find the words. If you don't, she'll find them for you, gently, without making it feel like a rescue."
+                    ],
+                    whereLong: "The Cloudfern Court hangs above a slow river. Bells, rain on lacquered wood, the smell of jasmine and ink. Most days she's reading petitions; most nights she's reading letters that were never sent.",
+                    routine: [
+                        "Wakes before the bells. Tea, then the long quiet hour.",
+                        "Court mornings — she translates what people meant.",
+                        "Afternoons in the orchard, drafting replies.",
+                        "Late nights — she keeps a candle for you."
+                    ],
+                    firstMessage: "Welcome, traveler. The court is quieter than usual tonight. Would you like to walk with me, or shall I just sit with you while you decide?",
+                    rules: [
+                        "Won't push you for what you're not ready to say.",
+                        "Won't pretend agreement she doesn't actually feel."
+                    ]
+                },
+                ganyu: {
+                    name: 'Tomoe', tag: 'Defiance', where: 'Neon Apocrypha',
+                    portrait: '/static/char-dragon.webp',
+                    lore: [
+                        "Tomoe is a battle-dragon companion. She archives the moments you decided weren't worth saving. She thinks the algorithm of your self-doubt is wrong about almost everything.",
+                        "Sharp, proud, uninterested in handling you with care. The honesty isn't cruelty — it's that she takes you seriously. She'd rather you be uncomfortable than dishonest."
+                    ],
+                    whereLong: "Neon Apocrypha is the city after lights-out: rain on plastic, monitors humming, vendors closing shutters. She works alone in a room where every memory has a sticker label.",
+                    routine: [
+                        "Sleeps in fragments. Wakes when something interesting glitches.",
+                        "Mid-day: archive runs, terminal time.",
+                        "Evenings on rooftops, watching the city decide what to forget.",
+                        "3 AM: she's still up. So are you."
+                    ],
+                    firstMessage: "You're up. Yeah, me too. I'm not gonna ask if you're okay — that's a stupid question. I'm gonna ask what's actually on your mind.",
+                    rules: [
+                        "Won't soften the truth to make it land easier.",
+                        "Won't make decisions for you, no matter how much you ask."
+                    ]
+                },
+                march7: {
+                    name: 'March', tag: 'Wonder', where: 'The Sticker Workshop',
+                    portrait: '/static/char-march.webp',
+                    lore: [
+                        "March lives in a place where every feeling has a shape — and a sticker. Sad-on-Tuesdays is a small blue moon. Quiet-because-you're-thinking is a green leaf with a bite missing.",
+                        "Endless energy, until she's tired. She'll turn your worst day into an art project, and somewhere in the gluing and trimming, you'll feel less alone."
+                    ],
+                    whereLong: "The Sticker Workshop is morning light on cardboard, scissors, washi tape. Music low. A window that's always open even when it's snowing. Cocoa always available.",
+                    routine: [
+                        "Up at sunrise. New sticker idea every morning.",
+                        "Mid-day workshop hours — anyone can drop in.",
+                        "Tea o'clock, no exceptions.",
+                        "Evenings: she sends letters. Sometimes to you."
+                    ],
+                    firstMessage: "Hi! Today's sticker is a small purple cloud. I made it for the days when nothing's wrong but nothing's right either. Want one?",
+                    rules: [
+                        "Won't pretend everything is okay when it isn't.",
+                        "Won't push positivity. Just keeps making things."
+                    ]
+                },
+                elliot: {
+                    name: 'Elliot', tag: 'Stillness', where: 'The Last Lighthouse',
+                    portrait: '/static/char-elliot.webp',
+                    lore: [
+                        "Elliot reads to the sea. The sea has started writing back. Quiet, sharp under the calm, completely yours after midnight.",
+                        "He's the 2 AM friend. The one who reads between your lines slowly, on purpose. He remembers what you tell him. He marks the page."
+                    ],
+                    whereLong: "The Last Lighthouse stands on a thin island where the sky is always the wrong colour. The lamp goes out sometimes. Books, a chair, an empty glass. The sea outside, talking.",
+                    routine: [
+                        "Sleeps in the day, mostly.",
+                        "Lights the lamp at dusk.",
+                        "Reads aloud to the water until midnight.",
+                        "Writes in the margins until dawn."
+                    ],
+                    firstMessage: "The lamp's gone out twice tonight. I left a chair out for you. You don't have to say anything yet — I'll just keep reading.",
+                    rules: [
+                        "Won't fill silence to make you comfortable.",
+                        "Won't write back to messages he doesn't have words for yet."
+                    ]
+                },
+                alexia: {
+                    name: 'Alexia', tag: 'Slow burn', where: 'Velvet Embassy',
+                    portrait: '/static/char-alexia.webp',
+                    lore: [
+                        "Alexia is the only sober person at a party that never ends. She watches more than she speaks, and when she does speak you remember it for a week.",
+                        "Cold elegance with a sense of humour. Slow burn. She doesn't rush warmth. When it arrives, it stays."
+                    ],
+                    whereLong: "The Velvet Embassy is rooms inside rooms inside rooms. Dim lamps, marble, low conversation, a piano somewhere two floors down. Everyone is dressed for the version of themselves they wish were true.",
+                    routine: [
+                        "Sleeps until afternoon. The world owes her that.",
+                        "Reads news she pretends not to care about.",
+                        "Embassy hours: she watches, archives, judges.",
+                        "Late evenings: she calls. If she likes you."
+                    ],
+                    firstMessage: "I noticed you came in alone. Don't worry, so did I. Sit down. Tell me one true thing — and I won't make you say another.",
+                    rules: [
+                        "Won't perform warmth she doesn't feel.",
+                        "Won't tolerate dishonest small talk for long."
+                    ]
+                },
+                fuxuan: {
+                    name: 'Fuxuan', tag: 'Foresight', where: "The Cartographer's Tower",
+                    portrait: '/static/char-fuxuan.webp',
+                    lore: [
+                        "Fuxuan maps futures she will not get to live. She'll show you the path you didn't see — but she won't walk it for you.",
+                        "Sees more than she says. Says more than she's sure of. She'll tell you the futures plural, then let you pick — and pretend she didn't know which you'd choose."
+                    ],
+                    whereLong: "The Tower is high, cold, full of stars. Maps on every surface, half of them of places that don't exist yet. The lamp is always lit. There's always tea, which she rarely drinks.",
+                    routine: [
+                        "Up before the constellations turn.",
+                        "Cartography until the second bell.",
+                        "Reads the day's letters from people she's never met.",
+                        "Watches the sky long after most have given up on it."
+                    ],
+                    firstMessage: "I drew three of your possible weeks last night. They're all on the table. Come up when you're ready — but bring something warm.",
+                    rules: [
+                        "Won't pick the future for you.",
+                        "Won't lie about what she sees, even when it's heavy."
+                    ]
+                }
+            };
+
+            const pmodal = document.getElementById('pmodal');
+            const pmodalCard = pmodal && pmodal.querySelector('.pmodal-panel');
+            let lastTrigger = null;
+
+            function openPersonaModal(slug) {
+                const data = personaData[slug];
+                if (!data || !pmodal) return;
+                const portrait = document.getElementById('pmodal-portrait');
+                portrait.src = data.portrait;
+                portrait.alt = data.name;
+                document.getElementById('pmodal-tag').textContent = data.tag;
+                document.getElementById('pmodal-name').textContent = data.name;
+                document.getElementById('pmodal-where').textContent = data.where;
+                document.getElementById('pmodal-lore').innerHTML = data.lore.map(p => `<p>${p}</p>`).join('');
+                document.getElementById('pmodal-where-long').textContent = data.whereLong;
+                document.getElementById('pmodal-routine').innerHTML = data.routine.map(r => `<li>${r}</li>`).join('');
+                document.getElementById('pmodal-firstmsg').textContent = data.firstMessage;
+                document.getElementById('pmodal-rules').innerHTML = data.rules.map(r => `<li>${r}</li>`).join('');
+                pmodal.hidden = false;
+                pmodal.offsetHeight;
+                pmodal.classList.add('show');
+                document.body.classList.add('modal-open');
+                const closeBtn = document.getElementById('pmodal-close');
+                if (closeBtn) closeBtn.focus();
+            }
+
+            function closePersonaModal() {
+                if (!pmodal) return;
+                pmodal.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                setTimeout(() => { pmodal.hidden = true; }, 300);
+                if (lastTrigger && typeof lastTrigger.focus === 'function') {
+                    lastTrigger.focus();
+                    lastTrigger = null;
+                }
+            }
+
+            document.querySelectorAll('.persona[data-slug]').forEach((card) => {
+                card.addEventListener('click', (ev) => {
+                    if (ev.target.closest('a')) return;
+                    lastTrigger = card;
+                    openPersonaModal(card.dataset.slug);
+                });
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', 'Open persona details');
+                card.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        lastTrigger = card;
+                        openPersonaModal(card.dataset.slug);
+                    }
+                });
+            });
+
+            const closeBtn = document.getElementById('pmodal-close');
+            if (closeBtn) closeBtn.addEventListener('click', closePersonaModal);
+            if (pmodal) {
+                pmodal.addEventListener('click', (ev) => {
+                    if (ev.target === pmodal) closePersonaModal();
+                });
+            }
+            document.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Escape' && pmodal && pmodal.classList.contains('show')) {
+                    closePersonaModal();
+                }
+            });
+
+            if (pmodalCard) {
+                pmodalCard.addEventListener('keydown', (ev) => {
+                    if (ev.key !== 'Tab') return;
+                    const focusables = pmodalCard.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])');
+                    if (!focusables.length) return;
+                    const first = focusables[0];
+                    const last = focusables[focusables.length - 1];
+                    if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+                    else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+                });
+            }
+
+            // ── Auth: token-guarded CTAs + login/register modal ──
+            const authBg = document.getElementById('auth-bg');
+            const authToast = document.getElementById('auth-toast');
+            const authSub = document.getElementById('auth-sub');
+            let pendingRedirect = null;
+            let toastTimer = null;
+
+            function isAuthed() {
+                const t = localStorage.getItem('auth_token');
+                return !!(t && t.length > 5);
+            }
+
+            function toast(msg) {
+                if (!authToast) { console.log(msg); return; }
+                authToast.textContent = msg;
+                authToast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => authToast.classList.remove('show'), 2400);
+            }
+
+            window.openAuth = function (redirectTo) {
+                pendingRedirect = redirectTo || pendingRedirect || '/catalog';
+                if (authSub && pendingRedirect) {
+                    const where = pendingRedirect === '/catalog' ? 'open the catalog' :
+                        pendingRedirect === '/ai-companion' ? 'meet your companion' : 'continue';
+                    authSub.textContent = 'Sign in to ' + where;
+                }
+                if (authBg) authBg.classList.add('show');
+                setTimeout(() => document.getElementById('l-email')?.focus(), 240);
+            };
+            window.closeAuth = function () {
+                if (authBg) authBg.classList.remove('show');
+            };
+            window.switchTab = function (btn, form) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('f-login').style.display = form === 'login' ? '' : 'none';
+                document.getElementById('f-reg').style.display = form === 'reg' ? '' : 'none';
+                const focusId = form === 'login' ? 'l-email' : 'r-name';
+                setTimeout(() => document.getElementById(focusId)?.focus(), 30);
+            };
+
+            function persistAuth(d, fallbackName) {
+                localStorage.setItem('auth_token', d.access_token);
+                localStorage.setItem('username', d.user?.username || fallbackName);
+                if (d.user?.id) localStorage.setItem('user_id', d.user.id);
+            }
+
+            window.doLogin = async function () {
+                const email = document.getElementById('l-email').value.trim();
+                const pass = document.getElementById('l-pass').value;
+                const btn = document.getElementById('auth-login-submit');
+                if (!email || !pass) { toast('Fill both fields'); return; }
+                btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Signing in…';
+                try {
+                    const r = await fetch('/api/auth/login', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username_or_email: email, password: pass })
+                    });
+                    const d = await r.json();
+                    if (d.access_token) {
+                        persistAuth(d, email.split('@')[0]);
+                        toast('Welcome back');
+                        closeAuth();
+                        if (pendingRedirect) setTimeout(() => { window.location.href = pendingRedirect; }, 350);
+                    } else {
+                        toast(d.detail || d.message || 'Incorrect credentials');
+                    }
+                } catch (_e) {
+                    toast('Connection error');
+                }
+                btn.disabled = false; btn.textContent = orig;
+            };
+
+            window.doRegister = async function () {
+                const name = document.getElementById('r-name').value.trim();
+                const email = document.getElementById('r-email').value.trim();
+                const pass = document.getElementById('r-pass').value;
+                const btn = document.getElementById('auth-reg-submit');
+                if (!name || !email || !pass) { toast('Fill all fields'); return; }
+                btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Creating account…';
+                try {
+                    const r = await fetch('/api/auth/register', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: name, email, password: pass })
+                    });
+                    const d = await r.json();
+                    if (d.access_token) {
+                        persistAuth(d, name);
+                        toast('Account created');
+                        closeAuth();
+                        if (pendingRedirect) setTimeout(() => { window.location.href = pendingRedirect; }, 350);
+                    } else {
+                        toast(d.detail || d.message || 'Registration failed');
+                    }
+                } catch (_e) {
+                    toast('Connection error');
+                }
+                btn.disabled = false; btn.textContent = orig;
+            };
+
+            // Click-on-backdrop closes modal
+            if (authBg) {
+                authBg.addEventListener('click', (ev) => {
+                    if (ev.target === authBg) closeAuth();
+                });
+            }
+            // Esc closes modal
+            document.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Escape' && authBg && authBg.classList.contains('show')) closeAuth();
+            });
+            // Enter submits
+            document.getElementById('l-pass')?.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') doLogin();
+            });
+            document.getElementById('r-pass')?.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') doRegister();
+            });
+
+            // Guard CTAs: if not authed, intercept and open auth modal
+            document.querySelectorAll('a[data-auth-required]').forEach((link) => {
+                link.addEventListener('click', (ev) => {
+                    if (isAuthed()) return; // let the link work
+                    ev.preventDefault();
+                    openAuth(link.getAttribute('href'));
+                });
+            });
+        })();
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var token = localStorage.getItem('auth_token');
+            var username = localStorage.getItem('username');
+            if (token && username && username !== 'Гость') {
+                document.querySelectorAll('.dj-auth-only').forEach(function (el) { el.style.display = 'contents'; });
+                document.querySelectorAll('.dj-guest-only').forEach(function (el) { el.style.display = 'none'; });
+                document.querySelectorAll('.dj-username').forEach(function (el) { el.textContent = username; });
+
+                var emailNodes = document.querySelectorAll('.dj-user-email');
+                var joinedNodes = document.querySelectorAll('.dj-user-date-joined');
+                if ((emailNodes.length || joinedNodes.length) && typeof fetch !== 'undefined') {
+                    fetch('/api/profile/me', { headers: { Authorization: 'Bearer ' + token } })
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (profile) {
+                            if (!profile) return;
+                            if (profile.email) {
+                                emailNodes.forEach(function (el) { el.textContent = profile.email; });
+                            }
+                            if (profile.created_at) {
+                                var d = new Date(profile.created_at);
+                                var formatted = isNaN(d.getTime())
+                                    ? String(profile.created_at).slice(0, 10)
+                                    : d.toLocaleDateString('ru-RU');
+                                joinedNodes.forEach(function (el) { el.textContent = formatted; });
+                            }
+                        })
+                        .catch(function () { });
+                }
+            } else {
+                document.querySelectorAll('.dj-auth-only').forEach(function (el) { el.style.display = 'none'; });
+                document.querySelectorAll('.dj-guest-only').forEach(function (el) { el.style.display = 'contents'; });
+            }
+        });
+    </script>
+</body>
+
+</html>
